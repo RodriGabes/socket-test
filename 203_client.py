@@ -24,9 +24,6 @@ Digite '!exit' ou '!sair' para fechar o cliente a qualquer momento...
 Digite 'udp [XXX.XXX.XXX.XXX]:[PORTA]' para iniciar o cliente no modo UDP...
 =+=========+=""")
 
-# Confirmação de inicialização
-print("Iniciado")
-
 def validaIP(alvo): # Funcao para validação do endereço de IP do servidor
     try:
         alvo=alvo[4:] # Corta o comando da linha de texto
@@ -52,20 +49,26 @@ try: # Estrutura do menu e do código, dentro de try/except para tratar erros
         elif resp[:3].lower()=="udp": ### Modo UDP
             x=validaIP(resp)
             if x==0: # IP:Port validado com sucesso
-                try:
-                    clientSocket=socket(AF_INET, SOCK_DGRAM)
-                    print(f">>> Cliente UDP conectado ao servidor: {config['endereco']} porta: {config['porta']}")
-                    msg=input("Comando > ")
-                    clientSocket.sendto(msg.encode(),(config["endereco"],config["porta"]))
-                    serv_resp, serv_end = clientSocket.recvfrom(2048)
-                    raw_dados=serv_resp.decode()
-                    dados=raw_dados.split("&")
-                    for w in dados:
-                        pass ######
-                    clientSocket.close()
-                except Exception as erroConn:
-                    print(f""">>> ERRO: Nao foi possivel se conectar ao servidor...
+                while True: #Abre o loop para conexões
+                    try:
+                        clientSocket=socket(AF_INET, SOCK_DGRAM)
+                        print(f">>> Cliente UDP conectado ao servidor: {config['endereco']} porta: {config['porta']}")
+                        msg=input("Comando > ")
+                        if msg.lower() in ["!exit","!sair"]: break
+                        clientSocket.sendto(msg.encode(),(config["endereco"],config["porta"]))
+                        serv_resp, serv_end = clientSocket.recvfrom(2048)
+                        raw_dados=serv_resp.decode()
+                        dados=raw_dados.split("&")
+                        clientSocket.close()
+                        print("| # | CONTEUDO")
+                        l=1
+                        for w in dados:
+                            print(f"| {l} | {w}")
+                            l+=1
+                    except Exception as erroConn:
+                        print(f""">>> ERRO: Nao foi possivel se conectar ao servidor...
 >>> CAUSA: {erroConn}""")
+                print(">>> Conexao UDP com o servidor encerrada")
             else: print(erros[x])
             
         elif resp[:3].lower()=="tcp": ### Modo TCP
